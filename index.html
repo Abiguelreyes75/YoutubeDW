@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mostrar y Descargar Contenido de la Youtube</title>
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Roboto', sans-serif;
+            margin: 0;
+            padding: 20px;
+            background-color: #000000; /* Color de fondo morado */
+            color: white; /* Color de texto blanco */
+            text-align: center; /* Centrar el texto */
+        }
+        button {
+            margin: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            border: none;
+            border-radius: 20px; /* Esquinas redondeadas */
+            background-color: #4B0082; /* Color de fondo del botón */
+            color: white; /* Color del texto del botón */
+            cursor: pointer; /* Cambiar el cursor al pasar el mouse */
+            transition: background-color 0.3s; /* Transición suave */
+        }
+        button:hover {
+            background-color: #6A5ACD; /* Color de fondo al pasar el mouse */
+        }
+        button:hover {
+            animation: shake 0.5s; /* Aplicar animación al pasar el mouse */
+        }
+        @keyframes shake {
+            0% { transform: translate(0); }
+            25% { transform: translate(-2px, 0); }
+            50% { transform: translate(2px, 0); }
+            75% { transform: translate(-2px, 0); }
+            100% { transform: translate(0); }
+        }
+        #resultado {
+            margin-top: 20px;
+        }
+        .video-info {
+            margin-bottom: 20px;
+        }
+        input {
+            padding: 10px;
+            width: 400px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+            margin-bottom: 10px; /* Espacio entre el input y el botón */
+        }
+    </style>
+    <script>
+        async function obtenerDatos() {
+            const apiKey = 'GataDios';
+            const urlInput = document.getElementById('urlInput').value;
+            const apiUrl = `https://skizo.tech/api/y2mate?apikey=${apiKey}&url=${encodeURIComponent(urlInput)}`;
+
+            try {
+                const response = await fetch(apiUrl);
+                if (!response.ok) {
+                    throw new Error('Error en la red: ' + response.statusText);
+                }
+
+                const data = await response.json();
+                mostrarDatos(data);
+            } catch (error) {
+                console.error('Error:', error);
+                document.getElementById('resultado').innerText = 'Error al obtener datos';
+            }
+        }
+
+        function mostrarDatos(data) {
+            const resultadoDiv = document.getElementById('resultado');
+            resultadoDiv.innerHTML = ''; // Limpiar resultados anteriores
+
+            // Mostrar información del video
+            const videoInfo = document.createElement('div');
+            videoInfo.className = 'video-info';
+            videoInfo.innerHTML = `
+                <h2>${data.title}</h2>
+                <p><strong>Video ID:</strong> ${data.videoId}</p>
+                <p><strong>Duración:</strong> ${data.humanDuration} (${data.duration} segundos)</p>
+                <img src="${data.thumbnail}" alt="Thumbnail" width="240" />
+            `;
+            resultadoDiv.appendChild(videoInfo);
+
+            // Mostrar formatos de audio
+            mostrarFormatos(data.formats.audio.mp3, 'Audio (MP3)', resultadoDiv);
+            // Mostrar formatos de video
+            mostrarFormatos(data.formats.video.mp4, 'Video (MP4)', resultadoDiv);
+        }
+
+        function mostrarFormatos(formatos, tipo, parent) {
+            const tipoDiv = document.createElement('div');
+            tipoDiv.innerHTML = `<h3>${tipo}</h3>`;
+
+            if (Array.isArray(formatos) && formatos.length > 0) {
+                formatos.forEach(item => {
+                    const button = document.createElement('button');
+                    button.textContent = `Descargar ${item.quality} ${item.ext}`;
+                    button.onclick = () => window.open(item.convert, '_blank'); // Abrir enlace de descarga
+                    tipoDiv.appendChild(button);
+                });
+            } else {
+                tipoDiv.textContent = `No hay formatos disponibles para ${tipo}.`;
+            }
+
+            parent.appendChild(tipoDiv);
+        }
+    </script>
+</head>
+<body>
+    <h1>Mostrar y Descargar Contenido de Youtube</h1>
+    <input type="text" id="urlInput" placeholder="Introduce la URL del video">
+    <br>
+    <button onclick="obtenerDatos()">Obtener Resultados</button>
+    <div id="resultado"></div>
+</body>
+</html>
